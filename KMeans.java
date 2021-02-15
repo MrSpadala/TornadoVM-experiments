@@ -88,7 +88,7 @@ public class KMeans {
 
         System.out.println("Starting");
 
-        final int n = 1700000;
+        final int n = 170000;
         final int d = 100;
         final int k = 9;
         final int n_iters = 10;  //number of kmeans iterations
