@@ -10,46 +10,6 @@ public class KMeans {
 
     public static final int WARMING_UP_ITERATIONS = 1;
 
-    public static void mmul_mm(final float[] A, final float[] B, final float[] C, final int size) {
-        for (@Parallel int i = 0; i < size; i++) {
-            for (@Parallel int j = 0; j < size; j++) {
-                float sum = 0.0f;
-                for (int k = 0; k < size; k++) {
-                    sum += A[(i * size) + k] * B[(k * size) + j];
-                }
-                C[(i * size) + j] = sum;
-            }
-        }
-    }
-
-    public static void mmul_mmt(final float[] A, final float[] B, final float[] C,
-                final int A_rows, final int A_cols, final int B_rows) {
-        final int B_cols = A_cols;
-        for (@Parallel int i = 0; i < A_rows; i++) {
-            for (@Parallel int j = 0; j < B_rows; j++) {
-                float sum = 0.0f;
-                for (int k = 0; k < A_cols; k++) {
-                    sum += A[(i * A_cols) + k] * B[(j * B_cols) + k];
-                }
-                C[(i * A_cols) + j] = sum;
-            }
-        }
-    }
-
-    public static void mmul_mtm(final float[] A, final float[] B, final float[] C,
-                final int A_rows, final int A_cols, final int B_cols) {
-        final int B_rows = A_rows;
-        for (@Parallel int i = 0; i < A_cols; i++) {
-            for (@Parallel int j = 0; j < B_cols; j++) {
-                float sum = 0.0f;
-                for (int k = 0; k < A_rows; k++) {
-                    sum += A[(k * A_cols) + i] * B[(k * B_cols) + j];
-                }
-                C[(i * A_cols) + j] = sum;
-            }
-        }
-    }
-
     public static void kmeans_calc_dists(final float[] X, final float[] C, final int[] S, final float[] S_dists,
                 final int n, final int k, final int d) {
         for (@Parallel int i = 0; i < n; i++) {
@@ -63,7 +23,6 @@ public class KMeans {
                 }
 
                 if (dist < S_dists[i]) {
-                    //System.out.println("assigning to point "+i+" cluster "+j+" with dist "+dist);
                     S_dists[i] = dist;
                     S[i] = j;
                 }
@@ -122,22 +81,17 @@ public class KMeans {
     }
 
     public static void main(String[] args) {
+        double kmeans_dist;
+        long start, stop;
+        long tot_time_tornado = 0;
+        long tot_time_seq = 0;
 
-        /*int size = 512;
-        if (args.length >= 1) {
-            try {
-                size = Integer.parseInt(args[0]);
-            } catch (NumberFormatException nfe) {
-                size = 512;
-            }
-        }
-
-        System.out.println("Computing MxM of " + size + "x" + size);*/
         System.out.println("Starting");
 
         final int n = 1700000;
         final int d = 100;
         final int k = 9;
+        final int n_iters = 10;  //number of kmeans iterations
         assert(k < n);
 
         float[] X = new float[n * d];
@@ -157,9 +111,7 @@ public class KMeans {
         });
         IntStream.range(0, k).parallel().forEach(idx -> {
             C_num[idx] = 0;
-            //int center = r.nextInt(n+1);
             for (int j = 0; j < d; j++) {
-                //C[idx*d + j] = X[center*d + j];
                 C[idx*d + j] = r.nextFloat();
             }
         });
@@ -171,90 +123,47 @@ public class KMeans {
                 .streamOut(S);
         //@formatter:on
 
-        // 1. Warm up Tornado
+        // Run Tornado
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             t.execute();
             kmeans_assign_centers(X, C, S, C_num, n, k, d);
         }
 
-        double kmeans_dist;
-
-        // 2. Run parallel on the GPU with Tornado
-        long start = System.currentTimeMillis();
-        t.execute();
-        kmeans_assign_centers(X, C, S, C_num, n, k, d);
-        kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
-        System.out.println("kmeans cost: "+kmeans_dist);
-        t.execute();
-        kmeans_assign_centers(X, C, S, C_num, n, k, d);
-        kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
-        System.out.println("kmeans cost: "+kmeans_dist);
-        t.execute();
-        kmeans_assign_centers(X, C, S, C_num, n, k, d);
-        kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
-        System.out.println("kmeans cost: "+kmeans_dist);
-        long end = System.currentTimeMillis();
-        System.out.println("parallel done");
-        //System.out.println(Arrays.toString(S));
+        System.out.println("TornadoVM");
+        for (int i = 0; i < n_iters; i++) {
+            start = System.currentTimeMillis();
+            t.execute();
+            kmeans_assign_centers(X, C, S, C_num, n, k, d);
+            stop = System.currentTimeMillis();
+            tot_time_tornado += stop-start;
+            
+            kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
+            System.out.println("iter "+i+", kmeans cost: "+kmeans_dist);
+        }
 
         // Run sequential
-        // 1. Warm up sequential
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             kmeans_calc_dists(X, C, S, S_dists, n, k, d);
             kmeans_assign_centers(X, C, S, C_num, n, k, d);
         }
 
-        // 2. Run the sequential code
-        long startSequential = System.currentTimeMillis();
-        
-//        kmeans_debug_print_centers(C, k, d);
-        kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
-        System.out.println("kmeans cost: "+kmeans_dist);
+        System.out.println("Sequential");
+        for (int i = 0; i < n_iters; i++) {
+            start = System.currentTimeMillis();
+            kmeans_calc_dists(X, C, S, S_dists, n, k, d);
+            kmeans_assign_centers(X, C, S, C_num, n, k, d);
+            stop = System.currentTimeMillis();
+            tot_time_seq += stop-start;
+            
+            kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
+            System.out.println("iter "+i+", kmeans cost: "+kmeans_dist);
+        }
 
-        kmeans_calc_dists(X, C, S, S_dists, n, k, d);
-        kmeans_assign_centers(X, C, S, C_num, n, k, d);
-        //kmeans_debug_print_centers(C, k, d);
-        kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
-        System.out.println("kmeans cost: "+kmeans_dist);
-        //System.out.println(Arrays.toString(S));
-        //System.out.println(Arrays.toString(S_dists));
-        
-        kmeans_calc_dists(X, C, S, S_dists, n, k, d);
-        kmeans_assign_centers(X, C, S, C_num, n, k, d);
-        //kmeans_debug_print_centers(C, k, d);
-        kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
-        System.out.println("kmeans cost: "+kmeans_dist);
-        //System.out.println(Arrays.toString(S));
-        //System.out.println(Arrays.toString(S_dists));
-        
-        kmeans_calc_dists(X, C, S, S_dists, n, k, d);
-        kmeans_assign_centers(X, C, S, C_num, n, k, d);
-        //kmeans_debug_print_centers(C, k, d);
-        kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
-        System.out.println("kmeans cost: "+kmeans_dist);
-        //System.out.println(Arrays.toString(S));
-        //System.out.println(Arrays.toString(S_dists));
-        long endSequential = System.currentTimeMillis();
-        System.out.println("sequential done");
-
-        // Compute Gigaflops and performance
-        /*long msecGPUElapsedTime = (end - start);
-        long msecCPUElaptedTime = (endSequential - startSequential);
-        double flops = 2 * ((long)n)*((long)k)*((long)d);
-        double gpuGigaFlops = (1.0E-9 * flops) / (1.0E-9 + msecGPUElapsedTime / 1000.0f);
-        double cpuGigaFlops = (1.0E-9 * flops) / (1.0E-9 + msecCPUElaptedTime / 1000.0f);
-
-        String formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
-        String formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
-
-        System.out.println("\tCPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ms");
-        System.out.println("\tGPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ms");
-        System.out.println("\tSpeedup: " + ((endSequential - startSequential) / (end - start)) + "x");*/
-    
-        System.out.println("\tTotal time = " + (endSequential - startSequential) + " ms");
-        System.out.println("\tTotal Time = " + (end - start) + " ms");
-        System.out.println("\tSpeedup: " + ((endSequential - startSequential) / (end - start)) + "x");
-
+        System.out.println("\tTornadoVM total time = " + tot_time_tornado + " ms");
+        System.out.println("\tTornadoVM avg time per iter = " + (double) tot_time_tornado / n_iters + " ms");
+        System.out.println("\tSequential total Time = " + tot_time_seq + " ms");
+        System.out.println("\tSequential avg time per iter = " + (double) tot_time_seq / n_iters + " ms");
+        System.out.printf("\tSpeedup: %.2fx\n", ((double)tot_time_seq / (double)tot_time_tornado));
     }
 
 }
