@@ -1,2 +1,2 @@
 ./nvidia_docker_run.sh tornado KMeans
-
+#./nvidia_docker_run.sh tornado Reduction2D

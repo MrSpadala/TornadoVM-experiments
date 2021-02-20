@@ -30,8 +30,7 @@ public class KMeans {
         }
     }
 
-    public static void kmeans_assign_centers(final float[] X, float[] C, final int[] S, long[] C_num,
-                final int n, final int k, final int d) {
+    public static void zero_C_C_num(final float[] C, final long[] C_num, final int k, final int d) {
         // Zeros center
         for (@Parallel int i = 0; i < k*d; i++) {
             C[i] = 0.0f;
@@ -39,7 +38,10 @@ public class KMeans {
         for (@Parallel int i = 0; i < k; i++) {
             C_num[i] = 0;
         }
+    }
 
+    public static void kmeans_assign_centers(final float[] X, float[] C, final int[] S, long[] C_num,
+                final int n, final int k, final int d) {
         // Calculate sum of points
         for (int i = 0; i < n; i++) {
             int center = S[i];
@@ -48,15 +50,20 @@ public class KMeans {
                 C[center*d + j] += X[i*d + j];
             }
         }
+    }
 
+    public static void kmeans_average_centers(final float[] X, float[] C, final int[] S, long[] C_num,
+                final int n, final int k, final int d) {
         // Average
         for (@Parallel int i = 0; i < k; i++) {
             double num = C_num[i];
-            for (int j = 0; j < d; j++) {
+            for (@Parallel int j = 0; j < d; j++) {
                 C[i*d + j] /= num;
             }
         }
     }
+
+
 
     public static double kmeans_debug_tot_dists(final float[] X, final float[] C, final int[] S,
                 final int n, final int k, final int d) {
@@ -88,7 +95,7 @@ public class KMeans {
 
         System.out.println("Starting");
 
-        final int n = 170000;
+        final int n = 1700000;
         final int d = 100;
         final int k = 9;
         final int n_iters = 10;  //number of kmeans iterations
@@ -116,17 +123,23 @@ public class KMeans {
             }
         });
 
-        //@formatter:off
         TaskSchedule t = new TaskSchedule("s0")
                 .streamIn(C)
                 .task("t0", KMeans::kmeans_calc_dists, X, C, S, S_dists, n, k, d)
-                .streamOut(S);
-        //@formatter:on
+                .streamOut(S)
+                .task("t1", KMeans::zero_C_C_num, C, C_num, k, d)
+                .streamOut(C, C_num);
+
+        TaskSchedule t1 = new TaskSchedule("s1")
+                .streamIn(C, C_num)
+                .task("t0", KMeans::kmeans_average_centers, X, C, S, C_num, n, k, d)
+                .streamOut(C);
 
         // Run Tornado
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             t.execute();
             kmeans_assign_centers(X, C, S, C_num, n, k, d);
+            t1.execute();
         }
 
         System.out.println("TornadoVM");
@@ -134,6 +147,7 @@ public class KMeans {
             start = System.currentTimeMillis();
             t.execute();
             kmeans_assign_centers(X, C, S, C_num, n, k, d);
+            t1.execute();
             stop = System.currentTimeMillis();
             tot_time_tornado += stop-start;
             
@@ -144,14 +158,18 @@ public class KMeans {
         // Run sequential
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             kmeans_calc_dists(X, C, S, S_dists, n, k, d);
+            zero_C_C_num(C, C_num, k, d);
             kmeans_assign_centers(X, C, S, C_num, n, k, d);
+            kmeans_average_centers(X, C, S, C_num, n, k, d);
         }
 
         System.out.println("Sequential");
         for (int i = 0; i < n_iters; i++) {
             start = System.currentTimeMillis();
             kmeans_calc_dists(X, C, S, S_dists, n, k, d);
+            zero_C_C_num(C, C_num, k, d);
             kmeans_assign_centers(X, C, S, C_num, n, k, d);
+            kmeans_average_centers(X, C, S, C_num, n, k, d);
             stop = System.currentTimeMillis();
             tot_time_seq += stop-start;
             
