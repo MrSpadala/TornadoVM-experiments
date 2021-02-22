@@ -55,23 +55,23 @@ public class ReductionAvgFloats {
             long start = System.nanoTime();
             //task.execute();
             reductionAvgFloats(input, result);
-            result[0] /= (float) input.length;
+            //result[0] /= (float) input.length;
             long end = System.nanoTime();
 
             timers.add((end - start));
-            System.out.println("Result: "+result[0]);
+            //System.out.println("Result: "+result[0]);
         }
 
         Collections.sort(timers);
-        System.out.println("Median TotalTime: " + timers.get(timers.size()/2));
+        System.out.println("Median TotalTime: " + timers.get(timers.size()/2) + "ns");
     }
 
     public static void main(String[] args) {
-        int inputSize = 8192;
+        int inputSize = -1;
         if (args.length > 0) {
             inputSize = Integer.parseInt(args[0]);
         }
-        System.out.println("Size = " + inputSize);
+        //System.out.println("Size = " + inputSize);
         new ReductionAvgFloats().run(inputSize);
     }
 }
