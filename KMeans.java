@@ -14,6 +14,7 @@ public class KMeans {
                 final int n, final int k, final int d) {
         for (@Parallel int i = 0; i < n; i++) {
             S_dists[i] = Float.MAX_VALUE;
+            float[] dists = new float[k];
             for (int j = 0; j < k; j++) {
                 float dist = 0.0f;
                 float tmp;
@@ -21,11 +22,16 @@ public class KMeans {
                     tmp = X[i*d + z] - C[j*d + z];
                     dist += tmp * tmp;
                 }
+                dists[j] = dist;
+            }
 
-                if (dist < S_dists[i]) {
-                    S_dists[i] = dist;
-                    S[i] = j;
-                }
+            float S_min_dist = dists[0];
+            float prev_dist = S_min_dist;
+            S[i] = 0;
+            for (int j = 1; j < k; j++) {
+                S_min_dist = Math.min(S_min_dist, dists[j]);
+                S[i] = (S_min_dist == prev_dist) ? S[i] : j;
+                prev_dist = S_min_dist;
             }
         }
     }
