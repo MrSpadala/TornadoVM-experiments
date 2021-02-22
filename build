@@ -1,4 +1,4 @@
 #./nvidia_docker_run.sh javac.py KMeans.java
 #./nvidia_docker_run.sh javac.py Reduction2D.java
-./nvidia_docker_run.sh javac.py ReductionAvgFloats.java
+./nvidia_docker_run.sh javac.py WindowOperations.java
 
