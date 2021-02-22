@@ -3,6 +3,13 @@ import numpy as np
 import time
 import sys
 
+from matplotlib import rcParams
+
+rcParams['mathtext.fontset'] = 'stix'
+rcParams['font.family'] = 'STIXGeneral'
+rcParams['font.size'] = 13
+rcParams['legend.fontsize'] = "small"
+
 
 def plot_sum():
 	#
@@ -54,9 +61,11 @@ def plot_sum():
 	plt.plot(N, without_gpu, label="sequential", linestyle="--", marker="^", linewidth=0.9)
 	plt.plot(N, with_numpy, label="numpy", linestyle="--", marker="^", linewidth=0.9)
 	plt.legend()
+	plt.grid(True)
 	plt.ylabel("Time, ms")
 	plt.xlabel("Input array size")
 	plt.gca().set_xscale('log')
+	plt.savefig("sum_linear.png", dpi=200)
 	plt.gca().set_yscale('log')
 	plt.savefig("sum_log.png", dpi=200)
 	plt.show()
@@ -96,9 +105,11 @@ def plot_hampel():
 	plt.plot(N, with_gpu, label="tornado", linestyle="--", marker="^", linewidth=0.9)
 	plt.plot(N, without_gpu, label="sequential", linestyle="--", marker="^", linewidth=0.9)
 	plt.legend()
+	plt.grid(True)
 	plt.ylabel("Time, ms")
 	plt.xlabel("Input array size")
 	plt.gca().set_xscale('log')
+	plt.savefig("hampel_linear.png", dpi=200)
 	plt.gca().set_yscale('log')
 	plt.savefig("hampel_log.png", dpi=200)
 	plt.show()
@@ -136,11 +147,13 @@ def plot_kmeans():
 	plt.plot(N, with_gpu, label="tornado", linestyle="--", marker="^", linewidth=0.9)
 	plt.plot(N, without_gpu, label="sequential", linestyle="--", marker="^", linewidth=0.9)
 	plt.legend()
+	plt.grid(True)
 	plt.ylabel("Time, ms")
 	plt.xlabel("Input size, N*K*D")
 	plt.gca().set_xscale('log')
-	#plt.gca().set_yscale('log')
 	plt.savefig("kmeans_linear.png", dpi=200)
+	plt.gca().set_yscale('log')
+	plt.savefig("kmeans_log.png", dpi=200)
 	plt.show()
 
 
