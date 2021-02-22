@@ -42,12 +42,10 @@ public class ReductionAvgFloats {
             input[i] = r.nextFloat();
         });
 
-        //@formatter:off
         TaskSchedule task = new TaskSchedule("s0")
             .streamIn(input)
             .task("t0", ReductionAvgFloats::reductionAvgFloats, input, result)
             .streamOut(result);
-        //@formatter:on
 
         ArrayList<Long> timers = new ArrayList<>();
         for (int i = 0; i < 50; i++) {
