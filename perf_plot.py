@@ -92,16 +92,57 @@ def plot_hampel():
 	with_gpu = with_gpu[start_index:]
 	without_gpu = without_gpu[start_index:]
 
-	plt.title("Sum")
+	plt.title("Hampel")
 	plt.plot(N, with_gpu, label="tornado", linestyle="--", marker="^", linewidth=0.9)
 	plt.plot(N, without_gpu, label="sequential", linestyle="--", marker="^", linewidth=0.9)
 	plt.legend()
 	plt.ylabel("Time, ms")
 	plt.xlabel("Input array size")
 	plt.gca().set_xscale('log')
-	#plt.gca().set_yscale('log')
-	plt.savefig("hampel_linear.png", dpi=200)
+	plt.gca().set_yscale('log')
+	plt.savefig("hampel_log.png", dpi=200)
 	plt.show()
+
+
+def plot_kmeans():
+	#
+	# KMEANS
+	#
+
+	N = np.array([200, 2000, 20000, 200000, 2000000]) * 50 * 5  #varies values of n, fixed d, k
+
+	without_gpu = np.array([
+		4920716,
+		15257807,
+		58564819,
+		468063397,
+		4604026156,
+	]) * 10**-6
+
+	with_gpu = np.array([
+		11777419,
+		13787613,
+		21859670,
+		96262029,
+		831750753,
+	]) * 10**-6
+
+	start_index = 0
+	N = N[start_index:]
+	with_gpu = with_gpu[start_index:]
+	without_gpu = without_gpu[start_index:]
+
+	plt.title("k-means")
+	plt.plot(N, with_gpu, label="tornado", linestyle="--", marker="^", linewidth=0.9)
+	plt.plot(N, without_gpu, label="sequential", linestyle="--", marker="^", linewidth=0.9)
+	plt.legend()
+	plt.ylabel("Time, ms")
+	plt.xlabel("Input size, N*K*D")
+	plt.gca().set_xscale('log')
+	#plt.gca().set_yscale('log')
+	plt.savefig("kmeans_linear.png", dpi=200)
+	plt.show()
+
 
 if __name__ == '__main__':
 	if len(sys.argv) < 2:
@@ -110,5 +151,7 @@ if __name__ == '__main__':
 		plot_sum()
 	elif sys.argv[1] == "hampel":
 		plot_hampel()
+	elif sys.argv[1] == "kmeans":
+		plot_kmeans()
 	else:
 		raise ValueError(f"invalid arg {sys.argv[1]}")

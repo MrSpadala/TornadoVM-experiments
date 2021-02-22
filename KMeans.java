@@ -101,9 +101,10 @@ public class KMeans {
 
         System.out.println("Starting");
 
-        final int n = 1700000;
-        final int d = 100;
-        final int k = 9;
+        //final int n = 2000000;
+        final int n = Integer.parseInt(args[0]);  //need size as argument
+        final int d = 50;
+        final int k = 5;
         final int n_iters = 10;  //number of kmeans iterations
         assert(k < n);
 
@@ -150,11 +151,11 @@ public class KMeans {
 
         System.out.println("TornadoVM");
         for (int i = 0; i < n_iters; i++) {
-            start = System.currentTimeMillis();
+            start = System.nanoTime();
             t.execute();
             kmeans_assign_centers(X, C, S, C_num, n, k, d);
             t1.execute();
-            stop = System.currentTimeMillis();
+            stop = System.nanoTime();
             tot_time_tornado += stop-start;
             
             kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
@@ -171,22 +172,22 @@ public class KMeans {
 
         System.out.println("Sequential");
         for (int i = 0; i < n_iters; i++) {
-            start = System.currentTimeMillis();
+            start = System.nanoTime();
             kmeans_calc_dists(X, C, S, S_dists, n, k, d);
             zero_C_C_num(C, C_num, k, d);
             kmeans_assign_centers(X, C, S, C_num, n, k, d);
             kmeans_average_centers(X, C, S, C_num, n, k, d);
-            stop = System.currentTimeMillis();
+            stop = System.nanoTime();
             tot_time_seq += stop-start;
             
             kmeans_dist = kmeans_debug_tot_dists(X, C, S, n, k, d);
             System.out.println("iter "+i+", kmeans cost: "+kmeans_dist);
         }
 
-        System.out.println("\tTornadoVM total time = " + tot_time_tornado + " ms");
-        System.out.println("\tTornadoVM avg time per iter = " + (double) tot_time_tornado / n_iters + " ms");
-        System.out.println("\tSequential total Time = " + tot_time_seq + " ms");
-        System.out.println("\tSequential avg time per iter = " + (double) tot_time_seq / n_iters + " ms");
+        System.out.println("\tTornadoVM total time = " + tot_time_tornado + " ns");
+        System.out.println("\tTornadoVM avg time per iter = " + (double) tot_time_tornado / n_iters + " ns");
+        System.out.println("\tSequential total Time = " + tot_time_seq + " ns");
+        System.out.println("\tSequential avg time per iter = " + (double) tot_time_seq / n_iters + " ns");
         System.out.printf("\tSpeedup: %.2fx\n", ((double)tot_time_seq / (double)tot_time_tornado));
     }
 
