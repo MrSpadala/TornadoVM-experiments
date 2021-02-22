@@ -43,14 +43,15 @@ without_gpu = without_gpu[start_index:]
 with_numpy = with_numpy[start_index:]
 
 plt.title("Sum")
-plt.plot(N, with_gpu, label="tornado")
-plt.plot(N, without_gpu, label="sequential")
-plt.plot(N, with_numpy, label="numpy")
+plt.plot(N, with_gpu, label="tornado", linestyle="--", marker="^", linewidth=0.9)
+plt.plot(N, without_gpu, label="sequential", linestyle="--", marker="^", linewidth=0.9)
+plt.plot(N, with_numpy, label="numpy", linestyle="--", marker="^", linewidth=0.9)
 plt.legend()
 plt.ylabel("Time, ms")
 plt.xlabel("Input array size")
 plt.gca().set_xscale('log')
 plt.gca().set_yscale('log')
+plt.savefig("sum_log.png", dpi=200)
 plt.show()
 
 
