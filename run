@@ -1,2 +1,3 @@
 #./nvidia_docker_run.sh tornado KMeans
-./nvidia_docker_run.sh tornado --debug Reduction2D
+#./nvidia_docker_run.sh tornado --debug Reduction2D
+./nvidia_docker_run.sh tornado ReductionAvgFloats
