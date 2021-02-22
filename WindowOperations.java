@@ -7,7 +7,7 @@ import uk.ac.manchester.tornado.api.annotations.Parallel;
 
 public class WindowOperations {
 
-    public static final int WARMING_UP_ITERATIONS = 15;
+    public static final int WARMING_UP_ITERATIONS = 3;
 
     public static void matrixMultiplication(final float[] inputValues,
                                             final float[] outputMin,
@@ -92,12 +92,12 @@ public class WindowOperations {
 
     public static void main(String[] args) {
 
-        int size = 4194304;
+        int size = -1;
         if (args.length >= 1) {
             try {
                 size = Integer.parseInt(args[0]);
             } catch (NumberFormatException nfe) {
-                size = 512;
+                size = -1;
             }
         }
 
@@ -136,9 +136,9 @@ public class WindowOperations {
         }
 
         // 2. Run parallel on the GPU with Tornado
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         t.execute();
-        long end = System.currentTimeMillis();
+        long end = System.nanoTime();
         System.out.println("Tornado execution outliers indices");
         printOutliers(outliers, size);
 
@@ -149,9 +149,9 @@ public class WindowOperations {
         }
 
         // 2. Run the sequential code
-        long startSequential = System.currentTimeMillis();
+        long startSequential = System.nanoTime();
         matrixMultiplication(rawValues, windowMin, windowMax, windowAverage, outliers, size, window_size);
-        long endSequential = System.currentTimeMillis();
+        long endSequential = System.nanoTime();
         System.out.println("Sequential execution outliers indices");
         printOutliers(outliers, size);
 
@@ -165,8 +165,8 @@ public class WindowOperations {
         String formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
         String formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
 
-        System.out.println("\tCPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ms");
-        System.out.println("\tGPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ms");
+        System.out.println("\tCPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tGPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
         System.out.println("\tSpeedup: " + ((endSequential - startSequential) / (end - start)) + "x");
     }
 
