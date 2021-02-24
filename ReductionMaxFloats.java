@@ -15,9 +15,6 @@
  * limitations under the License.
  * 
  */
-
-package example;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
