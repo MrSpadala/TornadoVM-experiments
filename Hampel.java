@@ -5,7 +5,7 @@ import java.util.stream.IntStream;
 import uk.ac.manchester.tornado.api.TaskSchedule;
 import uk.ac.manchester.tornado.api.annotations.Parallel;
 
-public class WindowOperations {
+public class Hampel {
 
     public static final int WARMING_UP_ITERATIONS = 3;
 
@@ -92,7 +92,7 @@ public class WindowOperations {
 
     public static void main(String[] args) {
 
-        int size = -1;
+        int size = 8192;
         if (args.length >= 1) {
             try {
                 size = Integer.parseInt(args[0]);
@@ -126,7 +126,7 @@ public class WindowOperations {
 
         //@formatter:off
         TaskSchedule t = new TaskSchedule("s0")
-                .task("t0", WindowOperations::matrixMultiplication, rawValues, windowMin, windowMax, windowAverage, outliers, size, window_size)
+                .task("t0", Hampel::matrixMultiplication, rawValues, windowMin, windowMax, windowAverage, outliers, size, window_size)
                 .streamOut(outliers);
         //@formatter:on
 

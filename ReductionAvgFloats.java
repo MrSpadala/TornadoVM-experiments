@@ -53,7 +53,7 @@ public class ReductionAvgFloats {
             long start = System.nanoTime();
             //task.execute();
             reductionAvgFloats(input, result);
-            //result[0] /= (float) input.length;
+            //result[0] /= (float) input.length;  //uncomment to do the average, leave commented for the sum
             long end = System.nanoTime();
 
             timers.add((end - start));
@@ -65,7 +65,7 @@ public class ReductionAvgFloats {
     }
 
     public static void main(String[] args) {
-        int inputSize = -1;
+        int inputSize = 8192;
         if (args.length > 0) {
             inputSize = Integer.parseInt(args[0]);
         }

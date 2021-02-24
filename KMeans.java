@@ -101,8 +101,8 @@ public class KMeans {
 
         System.out.println("Starting");
 
-        //final int n = 2000000;
-        final int n = Integer.parseInt(args[0]);  //need size as argument
+        final int n = 2000000;
+        //final int n = Integer.parseInt(args[0]);  //need size as argument
         final int d = 50;
         final int k = 5;
         final int n_iters = 10;  //number of kmeans iterations
