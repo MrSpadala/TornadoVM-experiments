@@ -40,6 +40,17 @@ def plot_sum():
 		87032585,
 	]) * 10**-6
 
+	cuda = np.array([
+		0.00001,
+		0.00001,
+		0.00013,
+		0.00013,
+		0.00013,
+		0.00013,
+		0.00021,
+		0.00191
+	]) * 10**3
+
 	# Numpy test
 	with_numpy = []
 	for i in N:
@@ -55,11 +66,13 @@ def plot_sum():
 	with_gpu = with_gpu[start_index:]
 	without_gpu = without_gpu[start_index:]
 	with_numpy = with_numpy[start_index:]
+	cuda = cuda[start_index:]
 
 	plt.title("Sum")
 	plt.plot(N, with_gpu, label="tornado", linestyle="--", marker="^", linewidth=0.9)
 	plt.plot(N, without_gpu, label="sequential", linestyle="--", marker="^", linewidth=0.9)
 	plt.plot(N, with_numpy, label="numpy", linestyle="--", marker="^", linewidth=0.9)
+	plt.plot(N, cuda, label="cuda", linestyle="--", marker="^", linewidth=0.9)
 	plt.legend()
 	plt.grid(True)
 	plt.ylabel("Time, ms")
