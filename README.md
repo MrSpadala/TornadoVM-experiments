@@ -27,6 +27,5 @@ The directory `perf/` contains some plots of the performances obtained with Torn
 Docker image of TornadoVM with GPU support, [https://github.com/beehive-lab/docker-tornado](https://github.com/beehive-lab/docker-tornado)
 
 ## References
- - Slides TBA
  - [An Introduction to the OpenCL Programming Model](https://cims.nyu.edu/~schlacht/OpenCLModel.pdf)
  - [Efficient Reductions with CUDA](https://developer.download.nvidia.com/assets/cuda/files/reduction.pdf)
